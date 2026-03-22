@@ -139,37 +139,69 @@
             </div>
         </div>
 
-        <!-- ЛИЧНОЕ ДЕЛО -->
+            <!-- ✅ ЛИЧНОЕ ДЕЛО (ИСПРАВЛЕНО) -->
         <div id="profile-overlay">
-            <div class="profile-header"><div class="profile-title">⚙️ ЛИЧНОЕ ДЕЛО <span id="prof-name" style="color:#ffaa00;"></span></div><div class="profile-exit-btn" onclick="closeProfile()">ВЫЙТИ ИЗ СТАТИСТИКИ ❓</div></div>
-            <div class="profile-tabs"><div class="p-tab active" id="tab-stats" onclick="switchProfileTab('stats')">Статистика</div><div class="p-tab" id="tab-achieves">Достижения</div><div class="p-tab" id="tab-rating" onclick="switchProfileTab('rating')">Рейтинг</div></div>
+        <div id="profile-content">
+            <div class="profile-header">
+            <div class="profile-title">ЛИЧНОЕ ДЕЛО <span id="prof-name">[asas]</span></div>
+            <button class="profile-exit-btn" onclick="closeProfile()">ВЫЙТИ</button>
+            </div>
+            
+            <div class="profile-tabs">
+            <div id="tab-stats" class="p-tab active" onclick="switchProfileTab('stats')">Статистика</div>
+            <div id="tab-rating" class="p-tab" onclick="switchProfileTab('rating')">Рейтинг</div>
+            <div id="tab-achievements" class="p-tab" onclick="switchProfileTab('achievements')">Достижения</div>
+            </div>
+            
             <div class="profile-body">
-                <div id="profile-stats-content" class="p-content-flex">
-                    <div class="p-left-col"><div class="p-avatar-box">АВАТАР</div></div>
-                    <div class="p-right-col">
-                        <div class="p-stat-header">Служба по контракту</div>
-                        <div class="p-stat-list">
-                            <div>Проведено боев: <span id="st-battles">0</span></div>
-                            <div>Выиграно боев: <span id="st-wins">0</span></div>
-                            <div>Очков опыта: <span id="st-rating">0</span></div>
-                            <div>Убито ботов: <span id="st-bots">0</span></div>
-                            <div>Уничтожено объектов: <span id="st-env">0</span></div>
-                            <div>Личных «смертей»: <span id="st-deaths">0</span></div>
-                            <div>Нанесено урона: <span id="st-dmg">0</span></div>
-                            <div>Отремонтировано: <span id="st-heal">0</span></div>
-                            <div>Заработано монет: <span id="st-coins">0</span></div>
-                            <div>Выстреляно снарядов: <span id="st-shells">0</span></div>
-                        </div>
-                    </div>
+            <!-- Вкладка Статистика -->
+            <div id="profile-stats-content" class="p-content-flex" style="display: none;">
+                <div class="p-left-col">
+                <div class="p-avatar-box">АВАТАР</div>
+                <div style="color: #fff; font-weight: bold;" id="profile-rank">Рядовой</div>
                 </div>
-                <div id="profile-rating-content" style="display:none; width: 100%;">
-                    <table class="rating-table">
-                        <thead><tr><th width="60">Место</th><th width="120">Звание</th><th>Позывной</th><th>Опыт</th><th width="80">Профиль</th></tr></thead>
-                        <tbody id="rating-tbody"></tbody>
-                    </table>
+                <div class="p-right-col">
+                <div class="p-stat-header">📊 БОЕВАЯ СТАТИСТИКА</div>
+                <div class="p-stat-list">
+                    <div>Проведено боев: <span id="st-battles">0</span></div>
+                    <div>Выиграно боев: <span id="st-wins">0</span></div>
+                    <div>Очков опыта: <span id="st-rating">0</span></div>
+                    <div>Убито ботов: <span id="st-bots">0</span></div>
+                    <div>Уничтожено объектов: <span id="st-env">0</span></div>
+                    <div>Личных «смертей»: <span id="st-deaths">0</span></div>
+                    <div>Нанесено урона: <span id="st-dmg">0</span></div>
+                    <div>Отремонтировано: <span id="st-heal">0</span></div>
+                    <div>Заработано монет: <span id="st-coins">0</span></div>
+                    <div>Выстреляно снарядов: <span id="st-shells">0</span></div>
+                </div>
                 </div>
             </div>
-            <div class="profile-bottom-btns"><div class="btn h-btn-green" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</div></div>
+            
+            <!-- Вкладка Рейтинг -->
+            <div id="profile-rating-content" style="display: none; width: 100%;">
+                <table class="rating-table">
+                <thead>
+                    <tr>
+                    <th width="50">#</th>
+                    <th width="100">Звание</th>
+                    <th>Позывной</th>
+                    <th width="100">Опыт</th>
+                    <th width="60">Профиль</th>
+                    </tr>
+                </thead>
+                <tbody id="rating-tbody">
+                    <!-- Заполняется через JS -->
+                </tbody>
+                </table>
+            </div>
+            
+            <!-- Вкладка Достижения -->
+            <div id="profile-achievements-content" style="display: none; width: 100%; color: #fff;">
+                <div class="p-stat-header">🏆 ДОСТИЖЕНИЯ</div>
+                <div>В разработке...</div>
+            </div>
+            </div>
+        </div>
         </div>
 
         <!-- ПРАВАЯ ПАНЕЛЬ -->

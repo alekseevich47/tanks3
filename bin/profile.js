@@ -14,20 +14,29 @@ function closeProfile() {
 }
 
 function switchProfileTab(tabName) {
-    document.getElementById("tab-stats").classList.remove("active");
-    document.getElementById("tab-rating").classList.remove("active");
-    document.getElementById("profile-stats-content").style.display = "none";
-    document.getElementById("profile-rating-content").style.display = "none";
-
-    if (tabName === 'stats') {
-        document.getElementById("tab-stats").classList.add("active");
-        document.getElementById("profile-stats-content").style.display = "flex";
-        updateProfileStats();
-    } else if (tabName === 'rating') {
-        document.getElementById("tab-rating").classList.add("active");
-        document.getElementById("profile-rating-content").style.display = "block";
-        renderLeaderboard();
-    }
+  // Сбрасываем все вкладки
+  document.getElementById("tab-stats").classList.remove("active");
+  document.getElementById("tab-rating").classList.remove("active");
+  document.getElementById("tab-achievements").classList.remove("active");
+  
+  // Скрываем весь контент
+  document.getElementById("profile-stats-content").style.display = "none";
+  document.getElementById("profile-rating-content").style.display = "none";
+  document.getElementById("profile-achievements-content").style.display = "none";
+  
+  // Показываем нужное
+  if (tabName === 'stats') {
+    document.getElementById("tab-stats").classList.add("active");
+    document.getElementById("profile-stats-content").style.display = "flex";
+    updateProfileStats();
+  } else if (tabName === 'rating') {
+    document.getElementById("tab-rating").classList.add("active");
+    document.getElementById("profile-rating-content").style.display = "block";
+    renderLeaderboard();
+  } else if (tabName === 'achievements') {
+    document.getElementById("tab-achievements").classList.add("active");
+    document.getElementById("profile-achievements-content").style.display = "block";
+  }
 }
 
 function updateProfileStats() {
@@ -42,6 +51,7 @@ function updateProfileStats() {
     document.getElementById("st-heal").innerText = s.damageRepaired;
     document.getElementById("st-coins").innerText = s.coinsEarned;
     document.getElementById("st-shells").innerText = s.shellsUsed;
+    document.getElementById("profile-rank").innerText = viewingPlayer.rank;
 }
 
 function renderLeaderboard() {

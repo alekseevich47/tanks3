@@ -7,7 +7,31 @@ body { margin: 0; background-color: #222; color: white; font-family: Arial, sans
 #canvas { display: none; background: #4b3621; z-index: 5;}
 
 /* --- ВСПЛЫВАЮЩИЕ ОКНА (АЛЕРТЫ И ПАРОЛИ) --- */
-#custom-alert-overlay, #password-overlay, #exit-confirm-overlay, #admin-panel-overlay, #modal-overlay, #result-modal, #profile-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
+#custom-alert-overlay, #password-overlay, #exit-confirm-overlay, #admin-panel-overlay, #modal-overlay, #result-modal, #profile-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.85);
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+#profile-content {
+  background: #2d5a27;
+  border: 4px solid #005500;
+  width: 800px;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+  padding: 15px;
+  box-sizing: border-box;
+  border-radius: 5px;
+  box-shadow: 0 0 30px #000;
+}
 /* Окно логина показываем принудительно при старте */
 #login-overlay { display: flex; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 2000; }
 
@@ -120,7 +144,7 @@ body { margin: 0; background-color: #222; color: white; font-family: Arial, sans
 .profile-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;}
 .profile-title { font-size: 32px; font-weight: bold; color: #fff; text-shadow: 2px 2px 0 #555;}
 .profile-exit-btn { background: #00cc00; color: #fff; padding: 5px 15px; font-weight: bold; font-size: 16px; border: 2px solid #005500; cursor: pointer;}
-.profile-tabs { display: flex; margin-left: 250px;}
+.profile-tabs { display: flex; gap: 5px; margin-top: 10px;}
 .p-tab { background: #669966; color: #fff; padding: 5px 20px; margin-right: 5px; border: 1px solid #005500; border-bottom: none; border-radius: 5px 5px 0 0; cursor: pointer; font-weight: bold;}
 .p-tab.active { background: #99cc33; color: #003300; border-bottom: 2px solid #99cc33;}
 .profile-body { background: #009933; border: 2px solid #005500; flex-grow: 1; display: flex; padding: 5px; overflow-y: auto;}
