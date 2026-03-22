@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Танчики 2 - ОПЕРАТИВНАЯ ГРУППА</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // ИДЕАЛЬНОЕ МАСШТАБИРОВАНИЕ ПОД ЛЮБОЙ ЭКРАН
+        function resizeGame() {
+            const wrapper = document.getElementById('scale-wrapper');
+            const scale = Math.min(window.innerWidth / 1152, window.innerHeight / 830);
+            wrapper.style.transform = `scale(${scale})`;
+        }
+        window.addEventListener('resize', resizeGame);
+        window.addEventListener('load', resizeGame);
+    </script>
+</head>
+<body>
+
+<div id="scale-wrapper">
+    <div id="game-container">
+
+        <!-- ИГРОВЫЕ УВЕДОМЛЕНИЯ -->
+        <div id="custom-alert-overlay">
+            <div id="custom-alert-box">
+                <h3 style="color:#550000; margin-top:0;">ВНИМАНИЕ</h3>
+                <p id="custom-alert-text" style="font-size:14px; font-weight:bold; color:#333;"></p>
+                <div class="btn green" style="margin-top:15px; width: 100%;" onclick="closeGameAlert()">ПРИНЯТЬ</div>
+            </div>
+        </div>
+
+        <div id="login-overlay">
+            <div id="login-box">
+                <h2 style="margin-top:0; color:#552200;">АВТОРИЗАЦИЯ</h2>
+                <p style="font-size: 12px; color: #555; margin-bottom: 15px;">Введите ваш позывной. Данные сохраняются локально.</p>
+                <input type="text" id="login-username" placeholder="Ваш позывной" maxlength="15">
+                <div class="btn green" style="margin-top: 15px;" onclick="initiateLogin()">ВОЙТИ В ИГРУ</div>
+            </div>
+        </div>
+
+        <div id="password-overlay">
+            <div id="login-box">
+                <h2 style="margin-top:0; color:#550000;">ДОСТУП РАЗРАБОТЧИКА</h2>
+                <input type="password" id="admin-password" placeholder="Пароль" maxlength="10">
+                <div class="btn green" style="margin-top: 15px;" onclick="verifyAdminPassword()">ПОДТВЕРДИТЬ</div>
+                <div class="btn gray" style="margin-top: 5px;" onclick="cancelAdminLogin()">ОТМЕНА</div>
+            </div>
+        </div>
+
+        <div id="exit-confirm-overlay">
+            <div id="custom-alert-box" style="width:350px;">
+                <h3 style="color:#550000; margin-top:0;">ВЫХОД ИЗ БОЯ</h3>
+                <p style="font-size:14px; font-weight:bold; color:#333;">Вы действительно хотите покинуть бой?<br>Вам будет засчитано поражение!</p>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <div class="btn green" style="flex:1;" onclick="confirmExitBattle()">Да, выйти</div>
+                    <div class="btn gray" style="flex:1;" onclick="document.getElementById('exit-confirm-overlay').style.display='none'">Отмена</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="admin-panel-overlay">
+            <h1 style="color:#ffaa00; text-align:center;">ПАНЕЛЬ РАЗРАБОТЧИКА</h1>
+            <div style="display:flex; gap:10px; flex-grow:1;">
+                <div style="background:#fff; color:#000; flex:1; padding:10px; border-radius:5px;">
+                    <h3>Экономика Аккаунта</h3>
+                    Монеты: <input type="number" id="adm-coins" value="0"><br><br>
+                    Отвага: <input type="number" id="adm-shields" value="0"><br><br>
+                    Опыт: <input type="number" id="adm-exp" value="0"><br><br>
+                    <div class="btn green" onclick="adminSaveEconomy()">СОХРАНИТЬ ДАННЫЕ</div>
+                </div>
+                <div style="background:#fff; color:#000; flex:1; padding:10px; border-radius:5px;">
+                    <h3>Параметры Игрока</h3>
+                    HP (Макс): <input type="number" id="adm-hp" value="1650"><br><br>
+                    Скорость: <input type="number" id="adm-speed" value="0.8" step="0.1"><br><br>
+                    <div class="btn green" onclick="adminSaveParams()">СОХРАНИТЬ ПАРАМЕТРЫ</div>
+                </div>
+            </div>
+            <div class="btn gray" style="margin-top:20px; align-self:center; width:200px;" onclick="closeAdminPanel()">ЗАКРЫТЬ</div>
+        </div>
+
+        <div id="main-area">
+            <!-- АНГАР -->
+            <div id="hangar-ui">
+                <div class="h-header"><div class="h-logo">ТАНЧИКИ 2</div><div class="h-army">ГРУППА АРМИИ: Центр</div></div>
+                <div class="h-content">
+                    <div class="h-left"><div class="h-title-green">УСЛОВИЯ КОНТРАКТА</div><div class="h-subtitle">СЛУЖБА ПО КОНТРАКТУ - ПРАВИЛЬНЫЙ ВЫБОР!</div><div class="h-poster"><div class="poster-flag"></div><div class="poster-tankist"></div><div class="poster-text">СЛАВА ТАНКИСТАМ!</div></div></div>
+                    <div class="h-right"><div class="h-title-orange">БОЕВОЙ ЛИСТОК</div><div class="h-news"><span class="news-date">Текущее обновление</span><br><br><b>Много карт и Умные боты!</b><br>Карты теперь генерируются случайным образом из базы!<br>Опыт начисляется строго по результатам боя.</div></div>
+                </div>
+                <div class="h-buttons">
+                    <div class="btn-row"><div class="btn h-btn-cyan">! ВНУТРЕННИЙ НАРЯД</div><div class="btn h-btn-green" onclick="openProfile(currentUser)">ЛИЧНОЕ ДЕЛО</div><div class="btn h-btn-green">РЕМОНТНЫЙ АНГАР</div><div class="btn h-btn-bright" id="btn-choose-battle">ВЫБРАТЬ<br>БОЙ</div></div>
+                    <div class="btn-row"><div class="btn h-btn-orange">ПРИГЛАСИТЬ ДРУГА</div><div class="btn h-btn-green">ОТДЕЛ КАДРОВ</div><div class="btn h-btn-green">АРСЕНАЛ</div><div class="btn h-empty"></div></div>
+                </div>
+                <div style="flex-grow: 1;"></div>
+                <div class="h-rank-bar"><div class="rank-name" id="ui-rank">Рядовой</div><div class="rank-nums"><span id="ui-exp">0</span>/<span id="ui-max-exp">3000</span></div><div class="rank-progress-bg"><div class="rank-progress-fill" id="exp-bar"></div></div></div>
+                <div class="h-chat"><div class="chat-tabs"><div class="chat-tab tab-green">👤</div><div class="chat-tab tab-orange">Общий</div></div><div class="chat-body">Ожидание команд...</div></div>
+            </div>
+
+            <!-- ИГРОВОЕ ПОЛЕ -->
+            <canvas id="canvas" width="912" height="672"></canvas>
+
+            <!-- НИЖНЯЯ ПАНЕЛЬ В БОЮ -->
+            <div id="battle-bottom-panel">
+                <div class="bb-exp-row">
+                    <div class="bb-exp-text"><span id="bb-rank-name">Рядовой</span> <span id="bb-exp-num">0/3000</span></div>
+                    <div class="bb-exp-bar-bg"><div class="bb-exp-bar-fill" id="bb-exp-fill"></div></div>
+                </div>
+                <div class="bb-avatars" id="bb-avatars-container"></div>
+            </div>
+            
+            <div id="modal-overlay">
+                <div id="modal-content">
+                    <h2>ВЫБРАТЬ БОЙ</h2>
+                    <div class="battle-type"><input type="checkbox" id="cb-zachistka" checked><label><b>Зачистка</b> (Случайная карта)</label></div><br>
+                    <div class="btn green" id="btn-start-battle" style="padding:10px;">В ПЕРЕД!</div>
+                    <div class="btn gray mt-5" style="padding:10px;" onclick="closeModal('modal-overlay')">Отмена</div>
+                </div>
+            </div>
+
+            <div id="result-modal">
+                <div id="result-content">
+                    <div class="result-close" onclick="exitToHangar()">✖</div>
+                    <div class="result-header">
+                        <div id="result-emoji">😄</div>
+                        <div class="result-title">
+                            <h2 id="result-title-text">Победа!!!</h2>
+                            <p>Урон: <span id="res-dmg">0</span> ед.</p>
+                            <p>Убито врагов: <span id="res-kills">0</span></p>
+                            <p>Получено опыта: <span id="res-exp">0</span></p>
+                        </div>
+                    </div>
+                    <div class="result-rewards">Награды: <span class="icon-shield-mini">🛡️</span> <span id="res-shields">0</span> <span class="icon-coin-mini">🪙</span> <span id="res-coins">0</span></div>
+                    <div class="result-buttons">
+                        <div class="btn green res-btn" onclick="exitToHangar()">ВЫЙТИ ИЗ БОЯ</div>
+                        <div class="btn green res-btn" onclick="exitToHangar(); setTimeout(openProfile, 100, currentUser);">СТАТИСТИКА БОЯ</div>
+                    </div>
+                    <div class="result-cup" id="result-cup-icon">🏆</div>
+                    <div class="result-banner">📘 Знак героя: 1</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ЛИЧНОЕ ДЕЛО -->
+        <div id="profile-overlay">
+            <div class="profile-header"><div class="profile-title">⚙️ ЛИЧНОЕ ДЕЛО <span id="prof-name" style="color:#ffaa00;"></span></div><div class="profile-exit-btn" onclick="closeProfile()">ВЫЙТИ ИЗ СТАТИСТИКИ ❓</div></div>
+            <div class="profile-tabs"><div class="p-tab active" id="tab-stats" onclick="switchProfileTab('stats')">Статистика</div><div class="p-tab" id="tab-achieves">Достижения</div><div class="p-tab" id="tab-rating" onclick="switchProfileTab('rating')">Рейтинг</div></div>
+            <div class="profile-body">
+                <div id="profile-stats-content" class="p-content-flex">
+                    <div class="p-left-col"><div class="p-avatar-box">АВАТАР</div></div>
+                    <div class="p-right-col">
+                        <div class="p-stat-header">Служба по контракту</div>
+                        <div class="p-stat-list">
+                            <div>Проведено боев: <span id="st-battles">0</span></div>
+                            <div>Выиграно боев: <span id="st-wins">0</span></div>
+                            <div>Очков опыта: <span id="st-rating">0</span></div>
+                            <div>Убито ботов: <span id="st-bots">0</span></div>
+                            <div>Уничтожено объектов: <span id="st-env">0</span></div>
+                            <div>Личных «смертей»: <span id="st-deaths">0</span></div>
+                            <div>Нанесено урона: <span id="st-dmg">0</span></div>
+                            <div>Отремонтировано: <span id="st-heal">0</span></div>
+                            <div>Заработано монет: <span id="st-coins">0</span></div>
+                            <div>Выстреляно снарядов: <span id="st-shells">0</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="profile-rating-content" style="display:none; width: 100%;">
+                    <table class="rating-table">
+                        <thead><tr><th width="60">Место</th><th width="120">Звание</th><th>Позывной</th><th>Опыт</th><th width="80">Профиль</th></tr></thead>
+                        <tbody id="rating-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="profile-bottom-btns"><div class="btn h-btn-green" onclick="logout()">ВЫЙТИ ИЗ АККАУНТА</div></div>
+        </div>
+
+        <!-- ПРАВАЯ ПАНЕЛЬ -->
+        <div id="right-panel">
+            <div class="rp-top-info">
+                <div id="rp-rank-text" style="color:#555; font-size:10px; margin-bottom: 2px;">Рядовой</div>
+                <div id="rp-name-text" style="color:#000; font-size:12px; font-weight:bold;">Имя</div>
+            </div>
+
+            <div class="panel-top">
+                <div class="hp-bar-bg"><div id="ui-hp-bar"></div><span id="ui-hp-text">1650/1650</span></div>
+                <div class="icon-grid-top" id="ui-lives">
+                    <div class="icon-tank"></div><div class="icon-tank"></div><div class="icon-tank"></div><div class="icon-tank"></div>
+                </div>
+            </div>
+            
+            <div class="panel-section">
+                <div class="panel-header">Снаряды <span class="icon-info">!</span></div>
+                <div class="shells-grid">
+                    <div class="shell-box active-shell" id="ui-shell-0" onclick="buyItem('shell', 0)" title="Бесплатно"><span style="color:#555;">🚀</span> ∞</div>
+                    <div class="shell-box disabled-shell" id="ui-shell-1" onclick="buyItem('shell', 1)"><span style="color:#00aa00;">🚀</span> <span id="sh-c-1">0</span></div>
+                    <div class="shell-box disabled-shell" id="ui-shell-2" onclick="buyItem('shell', 2)"><span style="color:#0000ff;">🚀</span> <span id="sh-c-2">0</span></div>
+                    <div class="shell-box disabled-shell" id="ui-shell-3" onclick="buyItem('shell', 3)"><span style="color:#8a2be2;">🚀</span> <span id="sh-c-3">0</span></div>
+                    <div class="shell-box disabled-shell" id="ui-shell-4" onclick="buyItem('shell', 4)"><span style="color:#ff0000;">🚀</span> <span id="sh-c-4">0</span></div>
+                    <div class="shell-box disabled-shell" id="ui-shell-5" onclick="buyItem('shell', 5)"><span style="color:#000000;">🚀</span> <span id="sh-c-5">0</span></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:3px;">
+                    <div id="active-shell-info" style="font-size:9px; color:#333;">Базовый (50 ед.)</div>
+                    <div id="shoot-indicator" class="indicator-green"></div>
+                </div>
+            </div>
+
+            <div class="panel-section"><div class="panel-header">Спец. умения <span class="icon-info">!</span></div><div class="skills-center"><div class="icon-box skill-box" id="skill-shield" style="background: #00aaff;">ЩИТ<div class="cd-pie" id="cd-shield"></div></div><div class="icon-box skill-box" id="skill-fire" style="background: #ffaa00;">УСК<div class="cd-pie" id="cd-fire"></div></div></div></div>
+            <div class="panel-section"><div class="panel-header">Боекомплект <span class="icon-info">!</span></div><div class="icon-grid-4"><div class="icon-box active" onclick="interactRepair(0)">🔧<div class="item-count" id="ui-rep-0">0</div></div><div class="icon-box active" onclick="interactRepair(1)">🛠<div class="item-count" id="ui-rep-1">0</div></div><div class="icon-box active" onclick="interactRepair(2)">🔨<div class="item-count" id="ui-rep-2">0</div></div><div class="icon-box active" onclick="interactRepair(3)">⚙️<div class="item-count" id="ui-rep-3">0</div></div></div></div>
+            <div class="panel-section" style="background: #fff;"><div class="panel-header">Топливо <span class="icon-info">!</span></div><div class="fuel-bar-bg"><div class="fuel-fill" id="ui-fuel-bar"></div><span class="fuel-text" id="ui-fuel-text">1200/1200</span></div><div class="panel-header" style="margin-top:2px;">Таймер боя <span class="icon-info">!</span></div><div id="ui-timer" style="text-align: right; font-size: 14px; font-weight: bold; color: #333;">10:00</div></div>
+            <div class="currency-panel">🛡️ <span id="ui-shields">0</span> &nbsp; 🪙 <span id="ui-coins">0</span></div>
+            <div class="bottom-btns">
+                <div class="btn-settings" id="btn-admin-panel" style="display:none; background:#ffaa00; color:#000;" onclick="openAdminPanel()">НАСТРОЙКИ (АДМИН)</div>
+                <div class="btn-buy">КУПИТЬ КРЕДИТЫ</div>
+                <div class="btn-exit" id="btn-exit-battle" onclick="requestExitBattle()">ВЫЙТИ ИЗ БОЯ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ВАЖНО: СКРИПТЫ ДОЛЖНЫ БЫТЬ ЗДЕСЬ! -->
+<script src="logger.js"></script>
+<script src="maps.js"></script>
+<script src="state.js"></script>
+<script src="profile.js"></script>
+<script src="ui.js"></script>
+<script src="game.js"></script>
+
+</body>
+</html>
