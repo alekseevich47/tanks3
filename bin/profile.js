@@ -2,8 +2,7 @@ let viewingPlayer = null;
 
 function openProfile(nameToView) {
     viewingPlayer = db[nameToView] ? db[nameToView] : null;
-    if (!viewingPlayer) return; // Защита
-
+    if (!viewingPlayer) return;
     document.getElementById("profile-overlay").style.display = "flex";
     document.getElementById('prof-name').innerText = `[${viewingPlayer.name}]`;
     switchProfileTab('stats');
@@ -14,51 +13,72 @@ function closeProfile() {
 }
 
 function switchProfileTab(tabName) {
-  // Сбрасываем все вкладки
-  document.getElementById("tab-stats").classList.remove("active");
-  document.getElementById("tab-rating").classList.remove("active");
-  document.getElementById("tab-achievements").classList.remove("active");
-  
-  // Скрываем весь контент
-  document.getElementById("profile-stats-content").style.display = "none";
-  document.getElementById("profile-rating-content").style.display = "none";
-  document.getElementById("profile-achievements-content").style.display = "none";
-  
-  // Показываем нужное
-  if (tabName === 'stats') {
-    document.getElementById("tab-stats").classList.add("active");
-    document.getElementById("profile-stats-content").style.display = "flex";
-    updateProfileStats();
-  } else if (tabName === 'rating') {
-    document.getElementById("tab-rating").classList.add("active");
-    document.getElementById("profile-rating-content").style.display = "block";
-    renderLeaderboard();
-  } else if (tabName === 'achievements') {
-    document.getElementById("tab-achievements").classList.add("active");
-    document.getElementById("profile-achievements-content").style.display = "block";
-  }
+    // Убраны ВСЕ пробелы и добавлены проверки
+    const tabStats = document.getElementById("tab-stats");
+    const tabRating = document.getElementById("tab-rating");
+    const tabAchievements = document.getElementById("tab-achievements");
+    const contentStats = document.getElementById("profile-stats-content");
+    const contentRating = document.getElementById("profile-rating-content");
+    const contentAchievements = document.getElementById("profile-achievements-content");
+    
+    if (tabStats) tabStats.classList.remove("active");
+    if (tabRating) tabRating.classList.remove("active");
+    if (tabAchievements) tabAchievements.classList.remove("active");
+    
+    if (contentStats) contentStats.style.display = "none";
+    if (contentRating) contentRating.style.display = "none";
+    if (contentAchievements) contentAchievements.style.display = "none";
+    
+    if (tabName === 'stats') {
+        if (tabStats) tabStats.classList.add("active");
+        if (contentStats) contentStats.style.display = "flex";
+        updateProfileStats();
+    } else if (tabName === 'rating') {
+        if (tabRating) tabRating.classList.add("active");
+        if (contentRating) contentRating.style.display = "block";
+        renderLeaderboard();
+    } else if (tabName === 'achievements') {
+        if (tabAchievements) tabAchievements.classList.add("active");
+        if (contentAchievements) contentAchievements.style.display = "block";
+    }
 }
 
 function updateProfileStats() {
+    if (!viewingPlayer) return;
     const s = viewingPlayer.globalStats;
-    document.getElementById("st-battles").innerText = s.battlesPlayed;
-    document.getElementById("st-wins").innerText = s.battlesWon;
-    document.getElementById("st-rating").innerText = viewingPlayer.exp;
-    document.getElementById("st-bots").innerText = s.botsKilled;
-    document.getElementById("st-env").innerText = s.envDestroyed;
-    document.getElementById("st-deaths").innerText = s.deaths;
-    document.getElementById("st-dmg").innerText = s.damageDealt;
-    document.getElementById("st-heal").innerText = s.damageRepaired;
-    document.getElementById("st-coins").innerText = s.coinsEarned;
-    document.getElementById("st-shells").innerText = s.shellsUsed;
-    document.getElementById("profile-rank").innerText = viewingPlayer.rank;
+    
+    const elBattles = document.getElementById("st-battles");
+    const elWins = document.getElementById("st-wins");
+    const elRating = document.getElementById("st-rating");
+    const elBots = document.getElementById("st-bots");
+    const elEnv = document.getElementById("st-env");
+    const elDeaths = document.getElementById("st-deaths");
+    const elDmg = document.getElementById("st-dmg");
+    const elHeal = document.getElementById("st-heal");
+    const elCoins = document.getElementById("st-coins");
+    const elShields = document.getElementById("st-shields");
+    const elRank = document.getElementById("st-rank");
+    
+    if (elBattles) elBattles.innerText = s.battlesPlayed;
+    if (elWins) elWins.innerText = s.battlesWon;
+    if (elRating) elRating.innerText = viewingPlayer.exp;
+    if (elBots) elBots.innerText = s.botsKilled;
+    if (elEnv) elEnv.innerText = s.envDestroyed;
+    if (elDeaths) elDeaths.innerText = s.deaths;
+    if (elDmg) elDmg.innerText = s.damageDealt;
+    if (elHeal) elHeal.innerText = s.damageRepaired;
+    if (elCoins) elCoins.innerText = viewingPlayer.coins;
+    if (elShields) elShields.innerText = viewingPlayer.shields;
+    if (elRank) elRank.innerText = viewingPlayer.rank;
 }
 
 function renderLeaderboard() {
     const tbody = document.getElementById("rating-tbody");
-    tbody.innerHTML = "";
+    if (!tbody) return;
     
+    tbody.innerHTML = "";
     let allPlayers = Object.values(db).sort((a, b) => b.exp - a.exp);
+
     allPlayers.forEach((p, i) => {
         let tr = document.createElement("tr");
         tr.className = i % 2 === 0 ? "row-light" : "row-dark";

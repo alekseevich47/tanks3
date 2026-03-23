@@ -58,26 +58,6 @@
             </div>
         </div>
 
-        <div id="admin-panel-overlay">
-            <h1 style="color:#ffaa00; text-align:center;">ПАНЕЛЬ РАЗРАБОТЧИКА</h1>
-            <div style="display:flex; gap:10px; flex-grow:1;">
-                <div style="background:#fff; color:#000; flex:1; padding:10px; border-radius:5px;">
-                    <h3>Экономика Аккаунта</h3>
-                    Монеты: <input type="number" id="adm-coins" value="0"><br><br>
-                    Отвага: <input type="number" id="adm-shields" value="0"><br><br>
-                    Опыт: <input type="number" id="adm-exp" value="0"><br><br>
-                    <div class="btn green" onclick="adminSaveEconomy()">СОХРАНИТЬ ДАННЫЕ</div>
-                </div>
-                <div style="background:#fff; color:#000; flex:1; padding:10px; border-radius:5px;">
-                    <h3>Параметры Игрока</h3>
-                    HP (Макс): <input type="number" id="adm-hp" value="1650"><br><br>
-                    Скорость: <input type="number" id="adm-speed" value="0.8" step="0.1"><br><br>
-                    <div class="btn green" onclick="adminSaveParams()">СОХРАНИТЬ ПАРАМЕТРЫ</div>
-                </div>
-            </div>
-            <div class="btn gray" style="margin-top:20px; align-self:center; width:200px;" onclick="closeAdminPanel()">ЗАКРЫТЬ</div>
-        </div>
-
         <div id="main-area">
             <!-- АНГАР -->
             <div id="hangar-ui">
@@ -163,9 +143,9 @@
                 <div class="p-right-col">
                 <div class="p-stat-header">📊 БОЕВАЯ СТАТИСТИКА</div>
                 <div class="p-stat-list">
-                    <div>Проведено боев: <span id="st-battles">0</span></div>
+                    <div>Проведено боев: <span id="st-battles">0</span></div> 
                     <div>Выиграно боев: <span id="st-wins">0</span></div>
-                    <div>Очков опыта: <span id="st-rating">0</span></div>
+                    <div>Очков опыта: <span id="st-rating">0</span></div> 
                     <div>Убито ботов: <span id="st-bots">0</span></div>
                     <div>Уничтожено объектов: <span id="st-env">0</span></div>
                     <div>Личных «смертей»: <span id="st-deaths">0</span></div>
@@ -178,8 +158,7 @@
             </div>
             
             <!-- Вкладка Рейтинг -->
-            <div id="profile-rating-content" style="display: none; width: 100%;">
-                <table class="rating-table">
+            <table class="rating-table">
                 <thead>
                     <tr>
                     <th width="50">#</th>
@@ -187,13 +166,12 @@
                     <th>Позывной</th>
                     <th width="100">Опыт</th>
                     <th width="60">Профиль</th>
-                    </tr>
-                </thead>
-                <tbody id="rating-tbody">
-                    <!-- Заполняется через JS -->
-                </tbody>
-                </table>
-            </div>
+                </tr>
+            </thead>
+            <tbody id="rating-tbody">
+                <!-- Заполняется через JS -->
+            </tbody>
+            </table>
             
             <!-- Вкладка Достижения -->
             <div id="profile-achievements-content" style="display: none; width: 100%; color: #fff;">
@@ -239,7 +217,6 @@
             <div class="panel-section" style="background: #fff;"><div class="panel-header">Топливо <span class="icon-info">!</span></div><div class="fuel-bar-bg"><div class="fuel-fill" id="ui-fuel-bar"></div><span class="fuel-text" id="ui-fuel-text">1200/1200</span></div><div class="panel-header" style="margin-top:2px;">Таймер боя <span class="icon-info">!</span></div><div id="ui-timer" style="text-align: right; font-size: 14px; font-weight: bold; color: #333;">10:00</div></div>
             <div class="currency-panel">🛡️ <span id="ui-shields">0</span> &nbsp; 🪙 <span id="ui-coins">0</span></div>
             <div class="bottom-btns">
-                <div class="btn-settings" id="btn-admin-panel" style="display:none; background:#ffaa00; color:#000;" onclick="openAdminPanel()">НАСТРОЙКИ (АДМИН)</div>
                 <div class="btn-buy">КУПИТЬ КРЕДИТЫ</div>
                 <div class="btn-exit" id="btn-exit-battle" onclick="requestExitBattle()">ВЫЙТИ ИЗ БОЯ</div>
             </div>
@@ -247,13 +224,14 @@
     </div>
 </div>
 
-<!-- ВАЖНО: СКРИПТЫ ДОЛЖНЫ БЫТЬ ЗДЕСЬ! -->
-<script src="logger.js"></script>
-<script src="maps.js"></script>
-<script src="state.js"></script>
-<script src="profile.js"></script>
-<script src="ui.js"></script>
-<script src="game.js"></script>
+<!-- 📦 ПОДКЛЮЧЕНИЕ СКРИПТОВ (новая структура) -->
+<!-- Порядок важен: зависимости загружаются первыми -->
+<script src="bin/logger.js"></script>    <!-- Логирование -->
+<script src="bin/maps.js"></script>      <!-- Карты -->
+<script src="bin/state.js"></script>     <!-- Состояние, БД, авторизация -->
+<script src="bin/profile.js"></script>   <!-- Профиль, рейтинг -->
+<script src="bin/ui.js"></script>        <!-- Интерфейс, обработчики -->
+<script src="bin/game.js"></script>      <!-- Игровой цикл, физика -->
 
 </body>
 </html>
