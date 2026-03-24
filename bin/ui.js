@@ -20,20 +20,30 @@ function closeModal(id) {
 }
 
 document.getElementById("btn-start-battle").onclick = () => {
-    if (document.getElementById("cb-zachistka").checked) {
-        if (player.fuel < 100) {
-            showGameAlert("Недостаточно топлива для выхода в бой!");
-            return;
-        }
-        player.fuel -= 100;
-        saveDB();
-        closeModal('modal-overlay');
-        
-        document.getElementById("hangar-ui").style.display = "none";
-        document.getElementById("battle-bottom-panel").style.display = "flex";
-        
-        startBattleEngine();
+    // Определяем выбранный режим
+    let selectedMode = "ZACHISTKA";
+    const zachistkaRadio = document.getElementById("mode-zachistka");
+    const proRadio = document.getElementById("mode-zachistka-pro");
+    
+    if (proRadio && proRadio.checked) {
+        selectedMode = "ZACHISTKA_PRO";
     }
+    
+    if (player.fuel < 100) {
+        showGameAlert("Недостаточно топлива для выхода в бой!");
+        return;
+    }
+    
+    player.fuel -= 100;
+    saveDB();
+    closeModal('modal-overlay');
+    
+    // Скрываем ангар
+    document.getElementById("hangar-ui").style.display = "none";
+    document.getElementById("battle-bottom-panel").style.display = "flex";
+    
+    // Запускаем бой с выбранным режимом
+    startBattleEngine(selectedMode);
 };
 
 setInterval(() => {

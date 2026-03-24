@@ -88,13 +88,25 @@
             </div>
             
             <div id="modal-overlay">
-                <div id="modal-content">
-                    <h2>ВЫБРАТЬ БОЙ</h2>
-                    <div class="battle-type"><input type="checkbox" id="cb-zachistka" checked><label><b>Зачистка</b> (Случайная карта)</label></div><br>
-                    <div class="btn green" id="btn-start-battle" style="padding:10px;">В ПЕРЕД!</div>
-                    <div class="btn gray mt-5" style="padding:10px;" onclick="closeModal('modal-overlay')">Отмена</div>
-                </div>
-            </div>
+    <div id="modal-content">
+        <h2>ВЫБРАТЬ БОЙ</h2>
+        
+        <div class="battle-type">
+            <input type="radio" id="mode-zachistka" name="battle-mode" value="ZACHISTKA" checked>
+            <label for="mode-zachistka"><b>Зачистка</b> (3 простых бота)</label>
+        </div>
+        <br>
+        
+        <div class="battle-type">
+            <input type="radio" id="mode-zachistka-pro" name="battle-mode" value="ZACHISTKA_PRO">
+            <label for="mode-zachistka-pro"><b>Зачистка-ПРО</b> (5 сложных + 2 турели)</label>
+        </div>
+        <br>
+        
+        <div class="btn green" id="btn-start-battle" style="padding:10px;">В ПЕРЕД!</div>
+        <div class="btn gray mt-5" style="padding:10px;" onclick="closeModal('modal-overlay')">Отмена</div>
+    </div>
+</div>
 
             <div id="result-modal">
                 <div id="result-content">

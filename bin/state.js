@@ -40,6 +40,68 @@ const REPAIR_DATA = [
     { heal: 500, costCoins: 500 }
 ];
 
+const BOT_TYPES = {
+    SIMPLE: {
+        name: "Простой",
+        hp: 150,
+        damage: 50,
+        lives: 3,
+        fireRate: 1500,
+        speed: 0.6,
+        color: "#8B0000",
+        expReward: 100,
+        coinReward: 500,
+        visionRange: "line", // Видит только по линии огня
+        reactionDelay: 0
+    },
+    COMPLEX: {
+        name: "Сложный",
+        hp: 300,
+        damage: 150,
+        lives: 3,
+        fireRate: 1500,
+        speed: 0.9,
+        color: "#4B0082",
+        expReward: 250,
+        coinReward: 1000,
+        visionRange: "full", // Полная видимость
+        reactionDelay: 0,
+        minCount: 2 // Минимум 2 на карте
+    },
+    TURRET: {
+        name: "Турель",
+        hp: 1000,
+        damage: 150,
+        lives: 1,
+        fireRate: 1250, // В 1.2 раза быстрее простого (1500/1.2)
+        speed: 0, // Не двигается
+        color: "#2F4F4F",
+        expReward: 200,
+        coinReward: 750,
+        visionRange: "full", // Вся карта
+        reactionDelay: 500, // 1 секунда задержка
+        isStatic: true // Статичный
+    }
+};
+
+const BATTLE_MODES = {
+    ZACHISTKA: {
+        name: "Зачистка",
+        bots: [
+            { type: "SIMPLE", count: 3, positions: [[4, 1], [18, 1], [32, 1]] }
+        ],
+        totalToKill: 9
+    },
+    ZACHISTKA_PRO: {
+        name: "Зачистка-ПРО",
+        bots: [
+            { type: "COMPLEX", count: 5, positions: [[4, 1], [10, 1], [18, 1], [26, 1], [32, 1]] },
+            { type: "TURRET", count: 2, positions: [[14, 14], [24, 14]] }
+        ],
+        totalToKill: 7
+    }
+};
+
 function createDefaultPlayer(name) {
     return {
         name: name,

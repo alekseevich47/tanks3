@@ -30,9 +30,11 @@ const TILE = 24;
 let mapData = [];
 let totalBotsToKill = 9;
 let botsKilled = 0;
+let botsSpawned = 0; // 🆕 Счётчик заспавненных ботов
 
 function initMap() {
     mapData = [];
+    const modeConfig = BATTLE_MODES[game.currentMode] || BATTLE_MODES.ZACHISTKA;
     const layout = MAPS.zachistka[Math.floor(Math.random() * MAPS.zachistka.length)];
     for (let r = 0; r < layout.length; r++) {
         let row = [];
@@ -68,11 +70,13 @@ const tank = {
     invulnTime: 0
 };
 
-function startBattleEngine() {
+function startBattleEngine(mode = "ZACHISTKA") {
     canvasElem.style.display = "block";
     document.getElementById("btn-exit-battle").style.display = "block";
     game.state = "battle";
+    game.currentMode = mode;
     initMap();
+    
     tank.speed = player.speed || 0.8;
     tank.x = 18 * TILE;
     tank.y = 26 * TILE;
@@ -90,7 +94,10 @@ function startBattleEngine() {
     explosions = [];
     craters = [];
     botsKilled = 0;
-    totalBotsToKill = 9;
+    botsSpawned = 0; // 🆕 Сброс счётчика
+    
+    const modeConfig = BATTLE_MODES[mode];
+    totalBotsToKill = modeConfig.totalToKill;
     window.lastShotTime = 0;
 
     skills.shield.currentMax = 10000;
@@ -100,38 +107,58 @@ function startBattleEngine() {
     skills.rapid.readyAt = Date.now() + 10000;
     skills.rapid.active = false;
 
-    spawnBot(4 * TILE, 1 * TILE);
-    spawnBot(18 * TILE, 1 * TILE);
-    spawnBot(32 * TILE, 1 * TILE);
+    // 🆕 СПАВН БОТОВ ПО РЕЖИМУ
+    modeConfig.bots.forEach(botGroup => {
+        botGroup.positions.forEach((pos, index) => {
+            if (index < botGroup.count) {
+                spawnBot(botGroup.type, pos[0], pos[1]);
+                botsSpawned++;
+            }
+        });
+    });
+
     startBattleTimer();
     updateUI();
     cancelAnimationFrame(animationFrameId);
     gameLoop();
 }
 
-function spawnBot(x, y) {
+// 🆕 ИСПРАВЛЕНО: type параметр + жизни из конфига
+function spawnBot(type, x, y) {
+    const botConfig = BOT_TYPES[type] || BOT_TYPES.SIMPLE;
+    
     bots.push({
-        x: x,
-        y: y,
-        targetX: x,
-        targetY: y,
+        x: x * TILE,
+        y: y * TILE,
+        targetX: x * TILE,
+        targetY: y * TILE,
         w: TILE,
         h: TILE,
-        speed: 0.6,
+        type: type,
+        speed: botConfig.speed,
         dir: "down",
         state: "idle",
         turnDelay: 0,
-        hp: 150,
-        maxHp: 150,
-        color: "#8B0000",
+        hp: botConfig.hp,
+        maxHp: botConfig.hp,
+        damage: botConfig.damage,
+        fireRate: botConfig.fireRate,
+        color: botConfig.color,
         lastShot: 0,
         lastTrack: 0,
         isDead: false,
         respawnTime: 0,
         invulnTime: Date.now() + 2000,
-        lives: 3,
+        lives: botConfig.lives, // 🆕 Из конфига (1 или 3)
         toBeRemoved: false,
-        wantToShoot: false
+        wantToShoot: false,
+        canMove: !botConfig.isStatic,
+        patrolTimer: 0,
+        patrolDirection: "down",
+        lastKnownPlayerPos: null,
+        lastPlayerSeen: 0,
+        expReward: botConfig.expReward,  // ✅ Для наград
+        coinReward: botConfig.coinReward  // ✅ Для наград
     });
 }
 
@@ -222,18 +249,138 @@ function canSeePlayer(bot) {
     return null;
 }
 
-function getSmartBotDirection(bot) {
+// 🆕 ИИ для сложных ботов
+function getComplexBotAI(bot) {
+    const now = Date.now();
     let seeDir = canSeePlayer(bot);
+    
+    if (shouldDodgeBullet(bot)) {
+        bot.wantToShoot = false;
+        return getDodgeDirection(bot);
+    }
+    
     if (seeDir) {
         bot.wantToShoot = true;
+        bot.lastPlayerSeen = now;
+        bot.lastKnownPlayerPos = { x: tank.x, y: tank.y };
         return seeDir;
     }
-    bot.wantToShoot = false;
-    let possibleDirs = ["up", "down", "left", "right"];
-    let safeDirs = [];
-    let brickDirs = [];
     
-    possibleDirs.forEach(d => {
+    bot.wantToShoot = false;
+    
+    if (!bot.patrolTimer || now - bot.patrolTimer > 2000) {
+        bot.patrolTimer = now;
+        bot.patrolDirection = getRandomPatrolDirection(bot);
+    }
+    
+    return bot.patrolDirection || "down";
+}
+
+function shouldDodgeBullet(bot) {
+    for (let b of bullets) {
+        if (!b.isPlayer) continue;
+        let distToBot = Math.sqrt(
+            Math.pow((b.x + b.w/2) - (bot.x + bot.w/2), 2) +
+            Math.pow((b.y + b.h/2) - (bot.y + bot.h/2), 2)
+        );
+        if (distToBot < 100) {
+            let dirToBot = Math.atan2(
+                (bot.y + bot.h/2) - (b.y + b.h/2),
+                (bot.x + bot.w/2) - (b.x + b.w/2)
+            );
+            let bulletDir = 0;
+            if (b.dir === "up") bulletDir = -Math.PI/2;
+            if (b.dir === "down") bulletDir = Math.PI/2;
+            if (b.dir === "left") bulletDir = Math.PI;
+            if (b.dir === "right") bulletDir = 0;
+            let angleDiff = Math.abs(dirToBot - bulletDir);
+            if (angleDiff < 0.5) return true;
+        }
+    }
+    return false;
+}
+
+function getDodgeDirection(bot) {
+    const dirs = ["left", "right", "up", "down"];
+    let safeDirs = [];
+    dirs.forEach(d => {
+        let nextX = bot.x;
+        let nextY = bot.y;
+        if (d === "up") nextY -= TILE;
+        if (d === "down") nextY += TILE;
+        if (d === "left") nextX -= TILE;
+        if (d === "right") nextX += TILE;
+        if (!isCollidingMap(nextX, nextY, bot.w, bot.h) &&
+            !checkTankCollisions(nextX, nextY, bot, false)) {
+            safeDirs.push(d);
+        }
+    });
+    if (safeDirs.length > 0) {
+        return safeDirs[Math.floor(Math.random() * safeDirs.length)];
+    }
+    return bot.dir;
+}
+
+function getRandomPatrolDirection(bot) {
+    const dirs = ["up", "down", "left", "right"];
+    let validDirs = [];
+    dirs.forEach(d => {
+        let nextX = bot.x;
+        let nextY = bot.y;
+        if (d === "up") nextY -= TILE;
+        if (d === "down") nextY += TILE;
+        if (d === "left") nextX -= TILE;
+        if (d === "right") nextX += TILE;
+        if (!isCollidingMap(nextX, nextY, bot.w, bot.h) &&
+            !checkTankCollisions(nextX, nextY, bot, false)) {
+            validDirs.push(d);
+        }
+    });
+    if (validDirs.length > 0) {
+        return validDirs[Math.floor(Math.random() * validDirs.length)];
+    }
+    return bot.dir;
+}
+
+function getSmartBotDirection(bot) {
+    if (bot.type === "TURRET" || !bot.canMove) {
+        return bot.dir;
+    }
+    
+    if (bot.type === "COMPLEX") {
+        return getComplexBotAI(bot);
+    }
+    
+    const now = Date.now();
+    
+    // 1. Проверяем видимость игрока
+    let seeDir = canSeePlayer(bot);
+    
+    // 2. Если видим игрока - атакуем
+    if (seeDir) {
+        bot.wantToShoot = true;
+        bot.lastPlayerSeen = now;
+        return seeDir;
+    }
+    
+    bot.wantToShoot = false;
+    
+    // 3. АКТИВНОЕ ПАТРУЛИРОВАНИЕ (главное улучшение!)
+    // Если давно не видели игрока - меняем направление каждые 2 секунды
+    if (!bot.patrolTimer || now - bot.patrolTimer > 2000) {
+        bot.patrolTimer = now;
+        bot.patrolDirection = getRandomPatrolDirection(bot);
+    }
+    
+    return bot.patrolDirection || "down";
+}
+
+function getRandomPatrolDirection(bot) {
+    const dirs = ["up", "down", "left", "right"];
+    let validDirs = [];
+    
+    // Проверяем каждое направление на проходимость
+    dirs.forEach(d => {
         let nextX = bot.x;
         let nextY = bot.y;
         if (d === "up") nextY -= TILE;
@@ -241,66 +388,23 @@ function getSmartBotDirection(bot) {
         if (d === "left") nextX -= TILE;
         if (d === "right") nextX += TILE;
         
-        if (!checkTankCollisions(nextX, nextY, bot, false)) {
-            let blockedByConcrete = false;
-            let blockedByBrick = false;
-            let outOfBounds = nextX < 0 || nextY < 0 || 
-                             nextX + bot.w > canvasElem.width || nextY + bot.h > canvasElem.height;
-            if (!outOfBounds) {
-                let corners = [
-                    { cx: nextX+1, cy: nextY+1 },
-                    { cx: nextX+bot.w-1, cy: nextY+1 },
-                    { cx: nextX+1, cy: nextY+bot.h-1 },
-                    { cx: nextX+bot.w-1, cy: nextY+bot.h-1 }
-                ];
-                for (let c of corners) {
-                    let col = Math.floor(c.cx / TILE);
-                    let row = Math.floor(c.cy / TILE);
-                    if (mapData[row] && mapData[row][col]) {
-                        if (mapData[row][col].type === 2 || mapData[row][col].type === 3) {
-                            blockedByConcrete = true;
-                        }
-                        if (mapData[row][col].type === 1) {
-                            blockedByBrick = true;
-                        }
-                    }
-                }
-            } else {
-                blockedByConcrete = true;
-            }
-            if (!blockedByConcrete && !blockedByBrick) safeDirs.push(d);
-            if (!blockedByConcrete && blockedByBrick) brickDirs.push(d);
+        if (!isCollidingMap(nextX, nextY, bot.w, bot.h) &&
+            !checkTankCollisions(nextX, nextY, bot, false)) {
+            validDirs.push(d);
         }
     });
     
-    let bestDir = bot.dir;
-    let minDist = Infinity;
-    let dirsToEval = safeDirs.length > 0 ? safeDirs : brickDirs;
-    if (dirsToEval.length === 0) return bot.dir;
-    
-    if (Math.random() < 0.15 && safeDirs.length > 0) {
-        return safeDirs[Math.floor(Math.random() * safeDirs.length)];
-    }
-    
-    dirsToEval.forEach(d => {
-        let nextX = bot.x;
-        let nextY = bot.y;
-        if (d === "up") nextY -= TILE;
-        if (d === "down") nextY += TILE;
-        if (d === "left") nextX -= TILE;
-        if (d === "right") nextX += TILE;
-        let dist = Math.abs(nextX - tank.x) + Math.abs(nextY - tank.y);
-        if (d !== bot.dir) dist += TILE * 1.5;
-        if (dist < minDist) {
-            minDist = dist;
-            bestDir = d;
+    // Выбираем случайное доступное направление
+    if (validDirs.length > 0) {
+        // Предпочитаем не менять направление без необходимости (70% шанс остаться)
+        if (validDirs.includes(bot.dir) && Math.random() < 0.7) {
+            return bot.dir;
         }
-    });
-    
-    if (brickDirs.includes(bestDir) && !safeDirs.includes(bestDir)) {
-        bot.wantToShoot = true;
+        return validDirs[Math.floor(Math.random() * validDirs.length)];
     }
-    return bestDir;
+    
+    // Если все направления заблокированы - разворот
+    return bot.dir;
 }
 
 function moveTankGridState(t, isPlayer) {
@@ -436,24 +540,49 @@ function updateEngine() {
         }
     }
 
+    // 🆕 ИСПРАВЛЕНО: обработка ботов
     bots.forEach((bot) => {
         if (bot.toBeRemoved) return;
+        
         if (bot.isDead) {
             if (now >= bot.respawnTime) {
-                bot.isDead = false;
-                bot.hp = bot.maxHp;
-                bot.invulnTime = now + 2000;
-                const spawns = [4, 18, 32];
-                bot.x = spawns[Math.floor(Math.random() * spawns.length)] * TILE;
-                bot.y = 1 * TILE;
-                bot.targetX = bot.x;
-                bot.targetY = bot.y;
-                bot.state = "idle";
+                // 🆕 ПРОВЕРКА: если жизни кончились - НЕ респавним
+                if (bot.lives > 0) {
+                    bot.isDead = false;
+                    bot.hp = bot.maxHp;
+                    bot.invulnTime = now + 2000;
+                    
+                    if (!bot.canMove) {
+                        bot.x = bot.targetX;
+                        bot.y = bot.targetY;
+                    } else {
+                        const spawns = [4, 18, 32];
+                        bot.x = spawns[Math.floor(Math.random() * spawns.length)] * TILE;
+                        bot.y = 1 * TILE;
+                        bot.targetX = bot.x;
+                        bot.targetY = bot.y;
+                    }
+                    bot.state = "idle";
+                    bot.patrolTimer = 0;
+                    bot.patrolDirection = "down";  // 🆕 Сброс направления
+                }
+                // 🆕 Если lives <= 0 - бот удаляется (не респавнится)
             }
             return;
         }
-        moveTankGridState(bot, false);
-        if (now - bot.lastShot > 1500) {
+        
+        if (bot.canMove) {
+            moveTankGridState(bot, false);
+        } else {
+            let seeDir = canSeePlayer(bot);
+            if (seeDir) {
+                bot.dir = seeDir;
+                bot.wantToShoot = true;
+            }
+        }
+        
+        const fireDelay = bot.reactionDelay || 0;
+        if (now - bot.lastShot > bot.fireRate + fireDelay) {
             if (bot.wantToShoot || Math.random() < 0.05) {
                 bot.lastShot = now;
                 fireBullet(false, bot.x + bot.w/2 - 2, bot.y + bot.h/2 - 2, bot.dir);
@@ -516,6 +645,7 @@ function updateEngine() {
             }
         }
 
+        // 🆕 ИСПРАВЛЕНО: попадание в бота
         if (!hitObstacle && b.isPlayer) {
             for (let j = bots.length - 1; j >= 0; j--) {
                 let bot = bots[j];
@@ -525,23 +655,32 @@ function updateEngine() {
                     bot.hp -= currentDmg;
                     addBattleProgress(0, Math.floor((currentDmg/100)*50), currentDmg);
                     hitObstacle = true;
+                    
                     if (bot.hp <= 0 && !bot.isDead) {
                         createBigExplosion(bot.x + bot.w/2, bot.y + bot.h/2);
                         craters.push({ x: bot.x, y: bot.y });
-                        bot.lives--;
+                        bot.lives--; // 🆕 УМЕНЬШАЕМ ЖИЗНИ
                         botsKilled++;
                         battleStats.kills++;
                         player.globalStats.botsKilled++;
-                        addBattleProgress(100, 500, 0);
+                        
+                        // 🆕 Награда по типу бота
+                        const botConfig = BOT_TYPES[bot.type] || BOT_TYPES.SIMPLE;
+                        addBattleProgress(botConfig.expReward, botConfig.coinReward, 0);
+                        
                         bot.isDead = true;
                         
+                        // 🆕 ПРОВЕРКА: если жизни > 0 - респавн, иначе удаление
                         if (bot.lives > 0) {
                             bot.respawnTime = now + 3000;
                         } else {
                             bot.toBeRemoved = true;
-                            if (botsKilled + bots.filter(b => !b.toBeRemoved).length < totalBotsToKill) {
-                                setTimeout(() => spawnBot(4 * TILE, 1 * TILE), 3000);
-                            } else if (bots.filter(b => !b.toBeRemoved).length === 0) {
+                            
+                            // 🆕 ПРОВЕРКА ПОБЕДЫ: считаем активных ботов
+                            const activeBots = bots.filter(b => !b.toBeRemoved && !b.isDead).length;
+                            const deadButRespawning = bots.filter(b => b.isDead && b.lives > 0).length;
+                            
+                            if (activeBots === 0 && deadButRespawning === 0) {
                                 setTimeout(() => showBattleResult(true), 1500);
                             }
                         }
